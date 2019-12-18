@@ -248,7 +248,7 @@ export default {
         }
       }).catch(err => {
         if (err.message.indexOf('query returned empty result') > 0) {
-          Logger.error('[Error-(core/pages/Category.js)] : validateRoute -> err', err)
+          Logger.error('[Error-(core/pages/Category.js)] : validateRoute -> err', 'Category', err)()
           this.$router.push(localizedRoute('/', currentStoreView().storeCode))
         }
       })

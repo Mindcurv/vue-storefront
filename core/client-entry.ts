@@ -28,7 +28,7 @@ const invokeClientEntry = async () => {
   await store.dispatch('url/registerDynamicRoutes')
   function _commonErrorHandler (err, reject) {
     if (err.message.indexOf('query returned empty result') > 0) {
-      Logger.error('[Error-(core/client-entry.ts)] : function_commonErrorHandler -> err', err)()
+      Logger.error('[Error-(core/client-entry.ts)] : function_commonErrorHandler -> err', 'client-entry', err)()
       router.push(localizedRoute('/', currentStoreView().storeCode))
     } else {
       rootStore.dispatch('notification/spawnNotification', {
