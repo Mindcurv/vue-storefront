@@ -9,12 +9,20 @@ const connectActions = {
   toggleMicrocart ({ commit }) {
     commit(types.CART_TOGGLE_MICROCART)
   },
-  async clear ({ commit, dispatch, getters }, options = { recreateAndSyncCart: true }) {
+  /**
+   * It will always clear cart items on frontend.
+   * Options:
+   * sync - if you want to sync it with backend.
+   * disconnect - if you want to clear cart token.
+   */
+  async clear ({ commit, dispatch }, { disconnect = true, sync = true } = {}) {
     await commit(types.CART_LOAD_CART, [])
-    if (options.recreateAndSyncCart && getters.isCartSyncEnabled) {
-      await commit(types.CART_LOAD_CART_SERVER_TOKEN, null)
+    if (sync) {
+      await dispatch('sync', { forceClientState: true, forceSync: true })
+    }
+    if (disconnect) {
       await commit(types.CART_SET_ITEMS_HASH, null)
-      await dispatch('connect', { guestCart: !config.orders.directBackendSync }) // guest cart when not using directBackendSync because when the order hasn't been passed to Magento yet it will repopulate your cart
+      await dispatch('disconnect')
     }
   },
   async disconnect ({ commit }) {
@@ -22,18 +30,17 @@ const connectActions = {
   },
   async authorize ({ dispatch, getters }) {
     const coupon = getters.getCoupon.code
-    const lastCartBypassTs = await StorageManager.get('user').getItem('last-cart-bypass-ts')
-    const timeBypassCart = config.orders.directBackendSync || (Date.now() - lastCartBypassTs) >= (1000 * 60 * 24)
+    if (coupon) {
+      await dispatch('removeCoupon', { sync: false })
+    }
 
-    if (!config.cart.bypassCartLoaderForAuthorizedUsers || timeBypassCart) {
-      await dispatch('connect', { guestCart: false })
+    await dispatch('connect', { guestCart: false, mergeQty: true })
 
-      if (!getters.getCoupon) {
-        await dispatch('applyCoupon', coupon)
-      }
+    if (coupon) {
+      await dispatch('applyCoupon', coupon)
     }
   },
-  async connect ({ getters, dispatch, commit }, { guestCart = false, forceClientState = false }) {
+  async connect ({ getters, dispatch, commit }, { guestCart = false, forceClientState = false, mergeQty = false }) {
     if (!getters.isCartSyncEnabled) return
     const { result, resultCode } = await CartService.getCartToken(guestCart, forceClientState)
 
@@ -41,7 +48,7 @@ const connectActions = {
       Logger.info('Server cart token created.', 'cart', result)()
       commit(types.CART_LOAD_CART_SERVER_TOKEN, result)
 
-      return dispatch('sync', { forceClientState, dryRun: !config.cart.serverMergeByDefault })
+      return dispatch('sync', { forceClientState, dryRun: !config.cart.serverMergeByDefault, mergeQty })
     }
 
     if (resultCode === 401 && getters.bypassCounter < config.queues.maxCartBypassAttempts) {
@@ -53,6 +60,17 @@ const connectActions = {
 
     Logger.warn('Cart sync is disabled by the config', 'cart')()
     return createDiffLog()
+  },
+  /**
+   * Create cart token when there are products in cart and we don't have token already
+   */
+  async create ({ dispatch, getters }) {
+    const storedItems = getters['getCartItems'] || []
+    const cartToken = getters['getCartToken']
+    if (storedItems.length && !cartToken) {
+      Logger.info('Creating server cart token', 'cart')()
+      await dispatch('connect', { guestCart: false })
+    }
   }
 }
 

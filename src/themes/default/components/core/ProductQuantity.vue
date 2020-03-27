@@ -8,6 +8,7 @@
       :disabled="disabled"
       @input="$emit('input', $event)"
       @blur="$v.$touch()"
+      only-positive
       :validations="[
         {
           condition: !$v.value.numeric || !$v.value.minValue || !$v.value.required,
@@ -45,7 +46,11 @@ export default {
     },
     maxQuantity: {
       type: Number,
-      required: true
+      default: undefined
+    },
+    checkMaxQuantity: {
+      type: Boolean,
+      default: true
     },
     loading: {
       type: Boolean,
@@ -61,10 +66,17 @@ export default {
       return onlineHelper.isOnline
     },
     max () {
-      return this.isOnline ? this.maxQuantity : null
+      if (!this.isOnline || !this.isSimpleOrConfigurable) {
+        return null
+      }
+
+      return this.maxQuantity
     },
     disabled () {
-      return this.isOnline ? !this.maxQuantity : false
+      if (!this.isOnline) {
+        return false
+      }
+      return !this.maxQuantity && this.checkMaxQuantity && this.isSimpleOrConfigurable
     },
     name () {
       if (this.isSimpleOrConfigurable && !this.loading && this.showQuantity) {

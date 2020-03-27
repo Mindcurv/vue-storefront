@@ -48,23 +48,55 @@ jest.mock('@vue-storefront/core/helpers', () => ({
 }));
 
 describe('Cart connectActions', () => {
-  it('clears cart token and server hash', async () => {
-    const contextMock = createContextMock({
-      getters: {
-        isCartSyncEnabled: true
-      }
-    })
-    config.orders = {
-      directBackendSync: false
-    }
+  it('clear deletes all cart products and token', async () => {
+    const contextMock = {
+      commit: jest.fn(),
+      dispatch: jest.fn(),
+      getters: { isCartSyncEnabled: false }
+    };
+    const wrapper = (actions: any) => actions.clear(contextMock);
+    config.cart = { synchronize: false };
 
-    await (cartActions as any).clear(contextMock)
+    await wrapper(cartActions);
 
     expect(contextMock.commit).toHaveBeenNthCalledWith(1, types.CART_LOAD_CART, []);
-    expect(contextMock.commit).toHaveBeenNthCalledWith(2, types.CART_LOAD_CART_SERVER_TOKEN, null);
-    expect(contextMock.commit).toHaveBeenNthCalledWith(3, types.CART_SET_ITEMS_HASH, null);
-    expect(contextMock.dispatch).toBeCalledWith('connect', { guestCart: true });
-  })
+    expect(contextMock.dispatch).toHaveBeenNthCalledWith(1, 'sync', { forceClientState: true, forceSync: true });
+    expect(contextMock.commit).toHaveBeenNthCalledWith(2, types.CART_SET_ITEMS_HASH, null);
+    expect(contextMock.dispatch).toHaveBeenNthCalledWith(2, 'disconnect');
+  });
+
+  it('clear deletes all cart products but keep token', async () => {
+    const contextMock = {
+      commit: jest.fn(),
+      dispatch: jest.fn(),
+      getters: { isCartSyncEnabled: false }
+    };
+    const wrapper = (actions: any) => actions.clear(contextMock, { disconnect: false });
+
+    config.cart = { synchronize: false };
+
+    await wrapper(cartActions);
+
+    expect(contextMock.commit).toHaveBeenNthCalledWith(1, types.CART_LOAD_CART, []);
+    expect(contextMock.dispatch).toHaveBeenNthCalledWith(1, 'sync', { forceClientState: true, forceSync: true });
+  });
+
+  it('clear deletes all cart products and token, but not sync with backend', async () => {
+    const contextMock = {
+      commit: jest.fn(),
+      dispatch: jest.fn(),
+      getters: { isCartSyncEnabled: false }
+    };
+    const wrapper = (actions: any) => actions.clear(contextMock, { sync: false });
+
+    config.cart = { synchronize: false };
+
+    await wrapper(cartActions);
+
+    expect(contextMock.commit).toHaveBeenNthCalledWith(1, types.CART_LOAD_CART, []);
+    expect(contextMock.commit).toHaveBeenNthCalledWith(2, types.CART_SET_ITEMS_HASH, null);
+    expect(contextMock.dispatch).toHaveBeenNthCalledWith(1, 'disconnect');
+  });
 
   it('disconnects cart', async () => {
     const contextMock = createContextMock()
@@ -85,12 +117,8 @@ describe('Cart connectActions', () => {
       }
     })
 
-    config.cart = {
-      bypassCartLoaderForAuthorizedUsers: false
-    }
-
     await (cartActions as any).authorize(contextMock)
-    expect(contextMock.dispatch).toHaveBeenNthCalledWith(1, 'connect', { guestCart: false });
+    expect(contextMock.dispatch).toHaveBeenNthCalledWith(1, 'connect', { guestCart: false, mergeQty: true });
   })
 
   it('creates cart token', async () => {
@@ -110,7 +138,7 @@ describe('Cart connectActions', () => {
 
     await (cartActions as any).connect(contextMock, {})
     expect(contextMock.commit).toBeCalledWith(types.CART_LOAD_CART_SERVER_TOKEN, 'server-cart-token')
-    expect(contextMock.dispatch).toBeCalledWith('sync', { forceClientState: false, dryRun: true })
+    expect(contextMock.dispatch).toBeCalledWith('sync', { forceClientState: false, dryRun: true, mergeQty: false })
   })
 
   it('attempts bypassing guest cart', async () => {
@@ -135,5 +163,44 @@ describe('Cart connectActions', () => {
     await (cartActions as any).connect(contextMock, {})
     expect(contextMock.commit).toBeCalledWith(types.CART_UPDATE_BYPASS_COUNTER, { counter: 1 })
     expect(contextMock.dispatch).toBeCalledWith('connect', { guestCart: true })
+  })
+  it('Create cart token when there are products in cart and we don\'t have token already', async () => {
+    const contextMock = {
+      commit: jest.fn(),
+      dispatch: jest.fn(),
+      getters: { getCartItems: [{id: 1}], getCartToken: '' }
+    };
+
+    const wrapper = (actions: any) => actions.create(contextMock);
+
+    await wrapper(cartActions);
+
+    expect(contextMock.dispatch).toBeCalledWith('connect', {guestCart: false});
+  })
+  it('doesn\'t create cart token when there are NO products in cart', async () => {
+    const contextMock = {
+      commit: jest.fn(),
+      dispatch: jest.fn(),
+      getters: { getCartItems: [], getCartToken: '' }
+    };
+
+    const wrapper = (actions: any) => actions.create(contextMock);
+
+    await wrapper(cartActions);
+
+    expect(contextMock.dispatch).toHaveBeenCalledTimes(0);
+  })
+  it('doesn\'t create cart token when there are products in cart but we have token already', async () => {
+    const contextMock = {
+      commit: jest.fn(),
+      dispatch: jest.fn(),
+      getters: { getCartItems: [{id: 1}], getCartToken: 'xyz' }
+    };
+
+    const wrapper = (actions: any) => actions.create(contextMock);
+
+    await wrapper(cartActions);
+
+    expect(contextMock.dispatch).toHaveBeenCalledTimes(0);
   })
 })

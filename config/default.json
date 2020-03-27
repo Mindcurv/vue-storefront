@@ -23,7 +23,7 @@
     "dynamicConfigInclude": [],
     "elasticCacheQuota": 4096,
     "ssrDisabledFor": {
-      "extensions": [".png", ".gif", ".jpg", ".jpeg", ".woff", ".eot", ".woff2", ".ttf", ".svg", ".css", ".js", ".json", ".ico", ".tiff", ".tif", ".raw"]
+      "extensions": ["png", "gif", "jpg", "jpeg", "woff", "eot", "woff2", "ttf", "svg", "css", "js", "json", "ico", "tiff", "tif", "raw"]
     },
     "trace": {
       "enabled": false,
@@ -270,7 +270,6 @@
       "width": 150,
       "height": 150
     },
-    "bypassCartLoaderForAuthorizedUsers": true,
     "serverMergeByDefault": true,
     "serverSyncCanRemoveLocalItems": false,
     "serverSyncCanModifyLocalItems": false,
@@ -450,7 +449,7 @@
   "i18n": {
     "defaultCountry": "US",
     "defaultLanguage": "EN",
-    "availableLocale": ["en-US","de-DE","fr-FR","es-ES","nl-NL", "ja-JP", "ru-RU", "it-IT", "pt-BR", "pl-PL", "cs-CZ"],
+    "availableLocale": ["en-US"],
     "defaultLocale": "en-US",
     "currencyCode": "USD",
     "currencySign": "$",
@@ -458,7 +457,7 @@
     "dateFormat": "HH:mm D/M/YYYY",
     "fullCountryName": "United States",
     "fullLanguageName": "English",
-    "bundleAllStoreviewLanguages": true
+    "bundleAllStoreviewLanguages": false
   },
   "expireHeaders": {
     "default": "30d",

@@ -44,8 +44,9 @@ export default {
       isThankYouPage: 'checkout/isThankYouPage'
     })
   },
-  beforeMount () {
-    this.$store.dispatch('checkout/load')
+  async beforeMount () {
+    await this.$store.dispatch('checkout/load')
+    this.$bus.$emit('checkout-after-load')
     this.$store.dispatch('checkout/setModifiedAt', Date.now())
     // TODO: Use one event with name as apram
     this.$bus.$on('cart-after-update', this.onCartAfterUpdate)
@@ -143,9 +144,6 @@ export default {
     },
     async onAfterPlaceOrder (payload) {
       this.confirmation = payload.confirmation
-      if (this.$store.state.checkout.personalDetails.createAccount) {
-        await this.$store.dispatch('user/login', { username: this.$store.state.checkout.personalDetails.emailAddress, password: this.$store.state.checkout.personalDetails.password })
-      }
       this.$store.dispatch('checkout/setThankYouPage', true)
       this.$store.dispatch('user/getOrdersHistory', { refresh: true, useCache: true })
       Logger.debug(payload.order)()
@@ -294,7 +292,7 @@ export default {
           region_id: this.shipping.region_id ? this.shipping.region_id : 0,
           country_id: this.shipping.country,
           street: [this.shipping.streetAddress, this.shipping.apartmentNumber],
-          company: 'NA', // TODO: Fix me! https://github.com/DivanteLtd/vue-storefront/issues/224
+          company: '',
           telephone: this.shipping.phoneNumber,
           postcode: this.shipping.zipCode,
           city: this.shipping.city,

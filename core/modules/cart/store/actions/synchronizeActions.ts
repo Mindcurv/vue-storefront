@@ -20,6 +20,9 @@ const synchronizeActions = {
 
     cartHooksExecutors.afterLoad(storedItems)
   },
+  syncCartWhenLocalStorageChange ({commit}, {items}) {
+    commit(types.CART_LOAD_CART, items)
+  },
   async synchronizeCart ({ commit, dispatch }, { forceClientState }) {
     const { synchronize, serverMergeByDefault } = config.cart
     if (!synchronize) return
@@ -36,20 +39,18 @@ const synchronizeActions = {
       Logger.info('Cart token received from cache.', 'cache', token)()
       Logger.info('Syncing cart with the server.', 'cart')()
       dispatch('sync', { forceClientState, dryRun: !serverMergeByDefault })
-    } else {
-      Logger.info('Creating server cart token', 'cart')()
-      await dispatch('connect', { guestCart: false })
     }
+    await dispatch('create')
   },
   /** @deprecated backward compatibility only */
   async serverPull ({ dispatch }, { forceClientState = false, dryRun = false }) {
     Logger.warn('The "cart/serverPull" action is deprecated and will not be supported with the Vue Storefront 1.11', 'cart')()
     return dispatch('sync', { forceClientState, dryRun })
   },
-  async sync ({ getters, rootGetters, commit, dispatch, state }, { forceClientState = false, dryRun = false }) {
+  async sync ({ getters, rootGetters, commit, dispatch, state }, { forceClientState = false, dryRun = false, mergeQty = false, forceSync = false }) {
     const shouldUpdateClientState = rootGetters['checkout/isUserInCheckout'] || forceClientState
     const { getCartItems, canUpdateMethods, isSyncRequired, bypassCounter } = getters
-    if (!canUpdateMethods || !isSyncRequired) return createDiffLog()
+    if ((!canUpdateMethods || !isSyncRequired) && !forceSync) return createDiffLog()
     commit(types.CART_SET_SYNC)
     const { result, resultCode } = await CartService.getItems()
     const { serverItems, clientItems } = cartHooksExecutors.beforeSync({ clientItems: getCartItems, serverItems: result })
@@ -59,7 +60,8 @@ const synchronizeActions = {
         dryRun,
         serverItems,
         clientItems,
-        forceClientState: shouldUpdateClientState
+        forceClientState: shouldUpdateClientState,
+        mergeQty
       })
       cartHooksExecutors.afterSync(diffLog)
       return diffLog

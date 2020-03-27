@@ -28,7 +28,7 @@ const compileOptions = {
   escape: /{{([^{][\s\S]+?[^}])}}/g,
   interpolate: /{{{([\s\S]+?)}}}/g
 }
-const NOT_ALLOWED_SSR_EXTENSIONS_REGEX = new RegExp(`(.*)(${config.server.ssrDisabledFor.extensions.join('|')})$`)
+const NOT_ALLOWED_SSR_EXTENSIONS_REGEX = new RegExp(`^.*\\.(${config.server.ssrDisabledFor.extensions.join('|')})$`)
 
 const isProd = process.env.NODE_ENV === 'production'
 process['noDeprecation'] = true
@@ -208,7 +208,7 @@ app.get('*', (req, res, next) => {
       if (config.server.useOutputCache && cache) {
         cache.set(
           'page:' + req.url,
-          { headers: res.getHeaders(), body: output },
+          { headers: res.getHeaders(), body: output, httpCode: res.statusCode },
           tagsArray
         ).catch(errorHandler)
       }
@@ -249,6 +249,11 @@ app.get('*', (req, res, next) => {
             }
           }
           res.setHeader('X-VS-Cache', 'Hit')
+
+          if (output.httpCode) {
+            res.status(output.httpCode)
+          }
+
           if (output.body) {
             res.end(output.body)
           } else {

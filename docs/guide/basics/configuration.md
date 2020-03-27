@@ -260,7 +260,7 @@ The internationalization settings are used by the translation engine (`defautlLo
 ```
 
 You can inherit settings from other storeview of your choice. Result config will be deep merged with chosen storeview by storecode set in `extend` property prioritizing current storeview values.
-Keep in mind that `url`, `storeCode` and `appendStoreCode` attributes cannot be inherited from oter storeviews.
+Keep in mind that `url`, `storeCode` and `appendStoreCode` attributes cannot be inherited from other storeviews.
 
 ## Entities
 
@@ -327,13 +327,6 @@ These settings are used just to configure the optimization strategy for differen
 Starting with Vue Storefront 1.7, we added a configuration option `config.entities.category.categoriesDynamicPrefetch` (by default set to `true`). This option switches the way the category tree is fetched. Previously we were fetching the full categories tree. In some cases, it can generate a few MB of payload. Currently, with this option in place, we're prefetching the categories on demand while the user is browsing the category tree.
 
 ## Cart
-
-```json
-"cart": {
-  "bypassCartLoaderForAuthorizedUsers": true,
-```
-
-The cart-loader bypass feature is there because we're posting orders to Magento asynchronously. It may happen that directly after placing an order, the Magento’s user still has the same quote ID, and after browsing through the VS store, old items will be restored to the shopping cart. Now you can disable this behavior by setting `bypassCartLoaderForAuthorizedUsers` option to `false`
 
 ```json
 "cart": {
