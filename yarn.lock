@@ -5097,6 +5097,11 @@ commander@2.17.x:
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.17.1.tgz#bd77ab7de6de94205ceacc72f1716d29f20a77bf"
   integrity sha512-wPMUt6FnH2yzG95SA6mzjQOEKUU3aLaDEmzs1ti+1E9h+CsrZghRlqEM/EJ4KscsQVG8uNN4uVreUeT8+drlgg==
 
+commander@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-5.0.0.tgz#dbf1909b49e5044f8fdaf0adc809f0c0722bdfd0"
+  integrity sha512-JrDGPAKjMGSP1G0DUoaceEJ3DZgAfr/q6X7FVk4+U5KxUSKviYGM2k6zWkfyyBHy5rAtzgYJFa1ro2O9PtoxwQ==
+
 commander@~2.19.0:
   version "2.19.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.19.0.tgz#f6198aa84e5b83c46054b94ddedbfed5ee9ff12a"
