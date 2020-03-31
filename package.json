@@ -121,7 +121,7 @@
     "cypress": "^3.1.5",
     "d3-dsv": "^1.0.8",
     "detect-installed": "^2.0.4",
-    "empty-dir": "^1.0.0",
+    "empty-dir": "^2.0.0",
     "eslint": "^5.0.0",
     "eslint-config-standard": "^11.0.0",
     "eslint-friendly-formatter": "^4.0.1",
