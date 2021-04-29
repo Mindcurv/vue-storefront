@@ -1,0 +1,26 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: commander
+    versions:
+    - 7.0.0
+  - dependency-name: vuepress
+    versions:
+    - 1.8.0
+  - dependency-name: urijs
+    versions:
+    - 1.19.5
+  - dependency-name: ts-loader
+    versions:
+    - 8.0.11
+  - dependency-name: webpack
+    versions:
+    - 4.44.2
+  - dependency-name: elliptic
+    versions:
+    - 6.5.3
